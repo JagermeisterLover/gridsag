@@ -347,9 +347,12 @@ class MSFEGenerator(QMainWindow):
         self.ax_2d.set_xlabel('X (мм)', fontsize=10)
         self.ax_2d.set_ylabel('Y (мм)', fontsize=10)
 
-        # Colorbar
-        if hasattr(self, 'cbar_2d'):
-            self.cbar_2d.remove()
+        # Colorbar - удаляем старый правильным способом
+        if hasattr(self, 'cbar_2d') and self.cbar_2d is not None:
+            try:
+                self.cbar_2d.ax.remove()
+            except:
+                pass
         self.cbar_2d = self.canvas_2d.figure.colorbar(im, ax=self.ax_2d, label='Ошибки (нм)')
 
         self.canvas_2d.draw()
@@ -469,9 +472,12 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_errors.set_zlabel('Ошибки (нм)', fontsize=10)
         self.ax_3d_errors.set_title('3D визуализация ошибок поверхности', fontsize=12, fontweight='bold')
 
-        # Colorbar
-        if hasattr(self, 'cbar_3d_errors'):
-            self.cbar_3d_errors.remove()
+        # Colorbar - удаляем старый правильным способом
+        if hasattr(self, 'cbar_3d_errors') and self.cbar_3d_errors is not None:
+            try:
+                self.cbar_3d_errors.ax.remove()
+            except:
+                pass
         self.cbar_3d_errors = self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
         
         # Установка угла обзора
@@ -512,9 +518,12 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_full.set_zlabel('Высота (мкм)', fontsize=10)
         self.ax_3d_full.set_title('3D визуализация полной поверхности', fontsize=12, fontweight='bold')
 
-        # Colorbar
-        if hasattr(self, 'cbar_3d_full'):
-            self.cbar_3d_full.remove()
+        # Colorbar - удаляем старый правильным способом
+        if hasattr(self, 'cbar_3d_full') and self.cbar_3d_full is not None:
+            try:
+                self.cbar_3d_full.ax.remove()
+            except:
+                pass
         self.cbar_3d_full = self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
         
         # Установка угла обзора
