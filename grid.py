@@ -331,7 +331,9 @@ class MSFEGenerator(QMainWindow):
             return
         
         # 2D карта ОШИБОК (matplotlib)
-        self.ax_2d.clear()
+        # Полностью очищаем figure и пересоздаем axes
+        self.canvas_2d.figure.clear()
+        self.ax_2d = self.canvas_2d.figure.add_subplot(111)
 
         Z_nm = self.Z * 1e6
         aperture = float(self.aperture_input.text())
@@ -347,13 +349,8 @@ class MSFEGenerator(QMainWindow):
         self.ax_2d.set_xlabel('X (мм)', fontsize=10)
         self.ax_2d.set_ylabel('Y (мм)', fontsize=10)
 
-        # Colorbar - удаляем старый правильным способом
-        if hasattr(self, 'cbar_2d') and self.cbar_2d is not None:
-            try:
-                self.cbar_2d.ax.remove()
-            except:
-                pass
-        self.cbar_2d = self.canvas_2d.figure.colorbar(im, ax=self.ax_2d, label='Ошибки (нм)')
+        # Colorbar (figure очищена, так что просто создаем новый)
+        self.canvas_2d.figure.colorbar(im, ax=self.ax_2d, label='Ошибки (нм)')
 
         self.canvas_2d.draw()
         
