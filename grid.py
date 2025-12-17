@@ -447,8 +447,10 @@ class MSFEGenerator(QMainWindow):
 
     def update_3d_matplotlib_errors(self):
         """3D график только ошибок"""
-        self.ax_3d_errors.clear()
-        
+        # Полностью очищаем figure и пересоздаем axes
+        self.canvas_3d_errors.figure.clear()
+        self.ax_3d_errors = self.canvas_3d_errors.figure.add_subplot(111, projection='3d')
+
         grid_size = int(self.grid_size_input.text())
         
         # Прореживание для производительности
@@ -472,13 +474,8 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_errors.set_zlabel('Ошибки (нм)', fontsize=10)
         self.ax_3d_errors.set_title('3D визуализация ошибок поверхности', fontsize=12, fontweight='bold')
 
-        # Colorbar - удаляем старый правильным способом
-        if hasattr(self, 'cbar_3d_errors') and self.cbar_3d_errors is not None:
-            try:
-                self.cbar_3d_errors.ax.remove()
-            except:
-                pass
-        self.cbar_3d_errors = self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
+        # Colorbar (figure очищена, так что просто создаем новый)
+        self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
         
         # Установка угла обзора
         self.ax_3d_errors.view_init(elev=25, azim=45)
@@ -494,8 +491,10 @@ class MSFEGenerator(QMainWindow):
     
     def update_3d_matplotlib_full(self):
         """3D график полной поверхности"""
-        self.ax_3d_full.clear()
-        
+        # Полностью очищаем figure и пересоздаем axes
+        self.canvas_3d_full.figure.clear()
+        self.ax_3d_full = self.canvas_3d_full.figure.add_subplot(111, projection='3d')
+
         grid_size = int(self.grid_size_input.text())
         
         step = max(1, grid_size // 100)
@@ -518,13 +517,8 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_full.set_zlabel('Высота (мкм)', fontsize=10)
         self.ax_3d_full.set_title('3D визуализация полной поверхности', fontsize=12, fontweight='bold')
 
-        # Colorbar - удаляем старый правильным способом
-        if hasattr(self, 'cbar_3d_full') and self.cbar_3d_full is not None:
-            try:
-                self.cbar_3d_full.ax.remove()
-            except:
-                pass
-        self.cbar_3d_full = self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
+        # Colorbar (figure очищена, так что просто создаем новый)
+        self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
         
         # Установка угла обзора
         self.ax_3d_full.view_init(elev=25, azim=45)
