@@ -176,13 +176,10 @@ class MSFEGenerator(QMainWindow):
         # Вкладки для разных видов
         tabs = QTabWidget()
         
-        # 2D карта ошибок
-        self.plot_2d = pg.PlotWidget()
-        self.plot_2d.setLabel('left', 'Y (мм)')
-        self.plot_2d.setLabel('bottom', 'X (мм)')
-        self.plot_2d.setTitle('2D карта ошибок поверхности (без базовой формы)')
-        self.plot_2d.setAspectLocked(True, ratio=1.0)
-        tabs.addTab(self.plot_2d, "2D карта ошибок")
+        # 2D карта ошибок (matplotlib)
+        self.canvas_2d = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_2d = self.canvas_2d.figure.add_subplot(111)
+        tabs.addTab(self.canvas_2d, "2D карта ошибок")
         
         # Cross-section (matplotlib)
         self.canvas_cross = FigureCanvas(Figure(figsize=(8, 6)))
@@ -328,19 +325,29 @@ class MSFEGenerator(QMainWindow):
         if self.Z is None:
             return
         
-        # 2D карта ОШИБОК
-        self.plot_2d.clear()
-        img = pg.ImageItem()
-        
+        # 2D карта ОШИБОК (matplotlib)
+        self.ax_2d.clear()
+
         Z_nm = self.Z * 1e6
-        img.setImage(Z_nm.T)
-
         aperture = float(self.aperture_input.text())
-        img.setRect(-aperture/2, -aperture/2, aperture, aperture)
 
-        colormap = pg.colormap.get('turbo')
-        img.setColorMap(colormap)
-        self.plot_2d.addItem(img)
+        im = self.ax_2d.imshow(
+            Z_nm,
+            extent=[-aperture/2, aperture/2, -aperture/2, aperture/2],
+            origin='lower',
+            cmap='turbo',
+            aspect='equal'
+        )
+
+        self.ax_2d.set_xlabel('X (мм)', fontsize=10)
+        self.ax_2d.set_ylabel('Y (мм)', fontsize=10)
+
+        # Colorbar
+        if hasattr(self, 'cbar_2d'):
+            self.cbar_2d.remove()
+        self.cbar_2d = self.canvas_2d.figure.colorbar(im, ax=self.ax_2d, label='Ошибки (нм)')
+
+        self.canvas_2d.draw()
         
         # Cross-section (matplotlib)
         self.ax_cross.clear()
@@ -349,8 +356,8 @@ class MSFEGenerator(QMainWindow):
         center_idx = grid_size // 2
 
         x_cross = self.X[center_idx, :]
-        z_errors = self.Z[center_idx, :] * 1e3  # мм -> мкм для читаемости
-        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :]) * 1e3  # мм -> мкм
+        z_errors = self.Z[center_idx, :]  # в мм
+        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :])  # в мм
 
         r_cross = np.abs(x_cross)
         sort_idx = np.argsort(r_cross)
@@ -369,8 +376,7 @@ class MSFEGenerator(QMainWindow):
         )
 
         self.ax_cross.set_xlabel('Радиус (мм)', fontsize=10)
-        self.ax_cross.set_ylabel('Sag (мкм)', fontsize=10)
-        self.ax_cross.set_title('Радиальный cross-section', fontsize=12, fontweight='bold')
+        self.ax_cross.set_ylabel('Sag (мм)', fontsize=10)
         self.ax_cross.legend()
         self.ax_cross.grid(True, alpha=0.3)
 
@@ -389,13 +395,13 @@ class MSFEGenerator(QMainWindow):
         if event.inaxes == self.ax_cross and event.xdata is not None and event.ydata is not None:
             # Обновляем заголовок с координатами
             self.ax_cross.set_title(
-                f'Радиальный cross-section | Радиус: {event.xdata:.3f} мм, Sag: {event.ydata:.4f} мкм',
-                fontsize=12, fontweight='bold'
+                f'Радиус: {event.xdata:.3f} мм, Sag: {event.ydata:.6f} мм',
+                fontsize=10
             )
             self.canvas_cross.draw_idle()
         else:
-            # Возвращаем стандартный заголовок
-            self.ax_cross.set_title('Радиальный cross-section', fontsize=12, fontweight='bold')
+            # Убираем заголовок
+            self.ax_cross.set_title('')
             self.canvas_cross.draw_idle()
 
     def update_3d_matplotlib_errors(self):
