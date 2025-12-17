@@ -181,16 +181,13 @@ class MSFEGenerator(QMainWindow):
         self.plot_2d.setLabel('left', 'Y (мм)')
         self.plot_2d.setLabel('bottom', 'X (мм)')
         self.plot_2d.setTitle('2D карта ошибок поверхности (без базовой формы)')
+        self.plot_2d.setAspectLocked(True, ratio=1.0)
         tabs.addTab(self.plot_2d, "2D карта ошибок")
         
-        # Cross-section
-        self.plot_cross = pg.PlotWidget()
-        self.plot_cross.setLabel('left', 'Sag (нм)')
-        self.plot_cross.setLabel('bottom', 'Радиус (мм)')
-        self.plot_cross.setTitle('Радиальный cross-section')
-        self.plot_cross.addLegend()
-        self.plot_cross.showGrid(x=True, y=True, alpha=0.3)
-        tabs.addTab(self.plot_cross, "Cross-section")
+        # Cross-section (matplotlib)
+        self.canvas_cross = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_cross = self.canvas_cross.figure.add_subplot(111)
+        tabs.addTab(self.canvas_cross, "Cross-section")
         
         # 3D ошибки (matplotlib)
         self.canvas_3d_errors = FigureCanvas(Figure(figsize=(8, 6)))
@@ -337,48 +334,70 @@ class MSFEGenerator(QMainWindow):
         
         Z_nm = self.Z * 1e6
         img.setImage(Z_nm.T)
-        
+
         aperture = float(self.aperture_input.text())
         img.setRect(-aperture/2, -aperture/2, aperture, aperture)
-        
-        colormap = pg.colormap.get('viridis')
+
+        colormap = pg.colormap.get('turbo')
         img.setColorMap(colormap)
         self.plot_2d.addItem(img)
         
-        # Cross-section
-        self.plot_cross.clear()
-        
+        # Cross-section (matplotlib)
+        self.ax_cross.clear()
+
         grid_size = int(self.grid_size_input.text())
         center_idx = grid_size // 2
-        
+
         x_cross = self.X[center_idx, :]
-        z_errors = self.Z[center_idx, :] * 1e6
-        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :]) * 1e6
-        
+        z_errors = self.Z[center_idx, :] * 1e3  # мм -> мкм для читаемости
+        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :]) * 1e3  # мм -> мкм
+
         r_cross = np.abs(x_cross)
         sort_idx = np.argsort(r_cross)
         r_sorted = r_cross[sort_idx]
-        
+
         # График ошибок
-        self.plot_cross.plot(
-            r_sorted, z_errors[sort_idx], 
-            pen=pg.mkPen('r', width=2), 
-            name='Ошибки (для Grid Sag)'
+        self.ax_cross.plot(
+            r_sorted, z_errors[sort_idx],
+            'r-', linewidth=2, label='Ошибки (для Grid Sag)'
         )
-        
+
         # График полной поверхности
-        self.plot_cross.plot(
-            r_sorted, z_total[sort_idx], 
-            pen=pg.mkPen('b', width=1), 
-            name='Полная поверхность'
+        self.ax_cross.plot(
+            r_sorted, z_total[sort_idx],
+            'b-', linewidth=1, label='Полная поверхность'
         )
+
+        self.ax_cross.set_xlabel('Радиус (мм)', fontsize=10)
+        self.ax_cross.set_ylabel('Sag (мкм)', fontsize=10)
+        self.ax_cross.set_title('Радиальный cross-section', fontsize=12, fontweight='bold')
+        self.ax_cross.legend()
+        self.ax_cross.grid(True, alpha=0.3)
+
+        # Интерактивный курсор для отображения координат
+        self.canvas_cross.figure.canvas.mpl_connect('motion_notify_event', self.on_cross_hover)
+        self.canvas_cross.draw()
         
         # 3D ошибки (matplotlib)
         self.update_3d_matplotlib_errors()
-        
+
         # 3D полная поверхность (matplotlib)
         self.update_3d_matplotlib_full()
-    
+
+    def on_cross_hover(self, event):
+        """Обработчик наведения мыши на cross-section график"""
+        if event.inaxes == self.ax_cross and event.xdata is not None and event.ydata is not None:
+            # Обновляем заголовок с координатами
+            self.ax_cross.set_title(
+                f'Радиальный cross-section | Радиус: {event.xdata:.3f} мм, Sag: {event.ydata:.4f} мкм',
+                fontsize=12, fontweight='bold'
+            )
+            self.canvas_cross.draw_idle()
+        else:
+            # Возвращаем стандартный заголовок
+            self.ax_cross.set_title('Радиальный cross-section', fontsize=12, fontweight='bold')
+            self.canvas_cross.draw_idle()
+
     def update_3d_matplotlib_errors(self):
         """3D график только ошибок"""
         self.ax_3d_errors.clear()
@@ -488,67 +507,10 @@ class MSFEGenerator(QMainWindow):
                         for j in range(grid_size):
                             z_val = self.Z[i, j]
                             f.write(f"{z_val:.8e} 0.0 0.0 0.0 0\n")
-                
-                # Инструкция
-                instruction_file = filename.replace('.dat', '_INSTRUCTION.txt')
-                with open(instruction_file, 'w', encoding='utf-8') as f:
-                    f.write("=" * 70 + "\n")
-                    f.write("ИНСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ В ZEMAX OPTICSTUDIO\n")
-                    f.write("=" * 70 + "\n\n")
-                    
-                    f.write("ПАРАМЕТРЫ ГЕНЕРАЦИИ:\n")
-                    f.write(f"  Радиус кривизны: {self.radius_input.text()} мм\n")
-                    f.write(f"  Коническая постоянная: {self.conic_input.text()}\n")
-                    f.write(f"  Диаметр апертуры: {self.aperture_input.text()} мм\n")
-                    f.write(f"  Размер сетки: {grid_size} x {grid_size}\n")
-                    f.write(f"  Тип ступенек: {self.step_type_combo.currentText()}\n")
-                    f.write(f"  Количество зон: {self.num_zones_input.text()}\n")
-                    f.write(f"  Амплитуда ступенек: {self.step_height_input.text()} нм\n")
-                    f.write(f"  RMS ошибки: {self.rms_label.text()} нм\n")
-                    f.write(f"  PV ошибки: {self.pv_label.text()} нм\n\n")
-                    
-                    f.write("НАСТРОЙКА В ZEMAX:\n")
-                    f.write("-" * 70 + "\n")
-                    f.write("1. Создайте поверхность типа Grid Sag\n\n")
-                    
-                    f.write("2. Задайте базовые параметры поверхности:\n")
-                    f.write(f"   - Radius: {self.radius_input.text()}\n")
-                    f.write(f"   - Conic: {self.conic_input.text()}\n")
-                    f.write(f"   - Semi-Diameter: {float(self.aperture_input.text())/2}\n\n")
-                    
-                    f.write("3. Загрузка Grid Sag файла:\n")
-                    f.write("   - Surface Properties → Import\n")
-                    f.write("   - Выберите файл .DAT\n\n")
-                    
-                    f.write("4. ВАЖНО! Установите Parameter 0:\n")
-                    f.write("   - Parameter 0 = 1 (LINEAR interpolation)\n")
-                    f.write("   - Это сохранит резкие ступеньки без сглаживания!\n")
-                    f.write("   - Bicubic spline (0) размоет ступеньки\n\n")
-                    
-                    f.write("5. Если нужны Zernike термы (опционально):\n")
-                    f.write("   - Parameters 1-8: коэффициенты асферы α1-α8\n")
-                    f.write("   - Parameters 13-14: Zernike термы и радиус нормализации\n\n")
-                    
-                    f.write("=" * 70 + "\n")
-                    f.write("РЕЗУЛЬТАТ:\n")
-                    f.write("=" * 70 + "\n")
-                    f.write("Grid Sag = Z_base(radius, conic) + Z_grid(ступеньки)\n\n")
-                    f.write("Cross-section поверхности будет ступенчатым!\n")
-                    f.write("Используйте Analysis → Surface Sag для проверки.\n\n")
-                    
-                    f.write("ПРОВЕРКА:\n")
-                    f.write("-" * 70 + "\n")
-                    f.write("1. Analyze → Surface → Surface Sag\n")
-                    f.write("2. Установите большое разрешение (512x512)\n")
-                    f.write("3. Cross-section должен показать ступеньки\n")
-                    f.write("4. Используйте FFT PSF для анализа влияния на MTF\n")
-                
+
                 QMessageBox.information(
-                    self, "Успех", 
-                    f"Файлы сохранены:\n\n"
-                    f"📄 {filename}\n"
-                    f"📄 {instruction_file}\n\n"
-                    f"Следуйте инструкциям в TXT файле!"
+                    self, "Успех",
+                    f"Файл сохранен:\n{filename}"
                 )
                 
             except Exception as e:
