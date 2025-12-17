@@ -430,9 +430,11 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_errors.set_ylabel('Y (мм)', fontsize=10)
         self.ax_3d_errors.set_zlabel('Ошибки (нм)', fontsize=10)
         self.ax_3d_errors.set_title('3D визуализация ошибок поверхности', fontsize=12, fontweight='bold')
-        
+
         # Colorbar
-        self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
+        if hasattr(self, 'cbar_3d_errors'):
+            self.cbar_3d_errors.remove()
+        self.cbar_3d_errors = self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
         
         # Установка угла обзора
         self.ax_3d_errors.view_init(elev=25, azim=45)
@@ -471,9 +473,11 @@ class MSFEGenerator(QMainWindow):
         self.ax_3d_full.set_ylabel('Y (мм)', fontsize=10)
         self.ax_3d_full.set_zlabel('Высота (мкм)', fontsize=10)
         self.ax_3d_full.set_title('3D визуализация полной поверхности', fontsize=12, fontweight='bold')
-        
+
         # Colorbar
-        self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
+        if hasattr(self, 'cbar_3d_full'):
+            self.cbar_3d_full.remove()
+        self.cbar_3d_full = self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
         
         # Установка угла обзора
         self.ax_3d_full.view_init(elev=25, azim=45)
