@@ -185,7 +185,12 @@ class MSFEGenerator(QMainWindow):
         self.canvas_cross = FigureCanvas(Figure(figsize=(8, 6)))
         self.ax_cross = self.canvas_cross.figure.add_subplot(111)
         tabs.addTab(self.canvas_cross, "Cross-section")
-        
+
+        # Grid Sag cross-section (только ошибки, увеличенный масштаб)
+        self.canvas_gridsag = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_gridsag = self.canvas_gridsag.figure.add_subplot(111)
+        tabs.addTab(self.canvas_gridsag, "Grid Sag Cross-section")
+
         # 3D ошибки (matplotlib)
         self.canvas_3d_errors = FigureCanvas(Figure(figsize=(8, 6)))
         self.ax_3d_errors = self.canvas_3d_errors.figure.add_subplot(111, projection='3d')
@@ -383,7 +388,26 @@ class MSFEGenerator(QMainWindow):
         # Интерактивный курсор для отображения координат
         self.canvas_cross.figure.canvas.mpl_connect('motion_notify_event', self.on_cross_hover)
         self.canvas_cross.draw()
-        
+
+        # Grid Sag cross-section (только ошибки, нанометровый масштаб)
+        self.ax_gridsag.clear()
+
+        # График только ошибок в нанометрах для видимости ступенек
+        z_errors_nm = self.Z[center_idx, :] * 1e6  # мм -> нм
+
+        self.ax_gridsag.plot(
+            r_sorted, z_errors_nm[sort_idx],
+            'r-', linewidth=2
+        )
+
+        self.ax_gridsag.set_xlabel('Радиус (мм)', fontsize=10)
+        self.ax_gridsag.set_ylabel('Grid Sag (нм)', fontsize=10)
+        self.ax_gridsag.grid(True, alpha=0.3)
+
+        # Интерактивный курсор
+        self.canvas_gridsag.figure.canvas.mpl_connect('motion_notify_event', self.on_gridsag_hover)
+        self.canvas_gridsag.draw()
+
         # 3D ошибки (matplotlib)
         self.update_3d_matplotlib_errors()
 
@@ -403,6 +427,20 @@ class MSFEGenerator(QMainWindow):
             # Убираем заголовок
             self.ax_cross.set_title('')
             self.canvas_cross.draw_idle()
+
+    def on_gridsag_hover(self, event):
+        """Обработчик наведения мыши на Grid Sag cross-section график"""
+        if event.inaxes == self.ax_gridsag and event.xdata is not None and event.ydata is not None:
+            # Обновляем заголовок с координатами
+            self.ax_gridsag.set_title(
+                f'Радиус: {event.xdata:.3f} мм, Grid Sag: {event.ydata:.3f} нм',
+                fontsize=10
+            )
+            self.canvas_gridsag.draw_idle()
+        else:
+            # Убираем заголовок
+            self.ax_gridsag.set_title('')
+            self.canvas_gridsag.draw_idle()
 
     def update_3d_matplotlib_errors(self):
         """3D график только ошибок"""
