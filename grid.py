@@ -17,20 +17,20 @@ class MSFEGenerator(QMainWindow):
         self.setWindowTitle("MSFE Surface Generator for Zemax Grid Sag")
         self.setGeometry(100, 100, 1400, 900)
         
-        # Основной виджет
+        # Main widget
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         layout = QHBoxLayout(main_widget)
         
-        # Левая панель - параметры
+        # Left panel - parameters
         left_panel = self.create_parameters_panel()
         layout.addWidget(left_panel, stretch=1)
         
-        # Правая панель - графики
+        # Right panel - plots
         right_panel = self.create_plots_panel()
         layout.addWidget(right_panel, stretch=3)
         
-        # Инициализация данных
+        # Data initialization
         self.X = None
         self.Y = None
         self.Z = None
@@ -40,93 +40,93 @@ class MSFEGenerator(QMainWindow):
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
-        # Группа: Базовая форма
-        base_group = QGroupBox("Базовая форма (Grid Sag parameters)")
+        # Group: Base shape
+        base_group = QGroupBox("Base Shape (Grid Sag parameters)")
         base_layout = QGridLayout()
         
         self.radius_input = self.create_parameter_row(
-            base_layout, 0, "Радиус (мм):", "100"
+            base_layout, 0, "Radius (mm):", "100"
         )
         self.conic_input = self.create_parameter_row(
-            base_layout, 1, "Коническая постоянная:", "-1.0"
+            base_layout, 1, "Conic constant:", "-1.0"
         )
         
-        base_layout.addWidget(QLabel("(Базовая форма будет задана\nчерез Radius и Conic в Zemax)"), 2, 0, 1, 2)
+        base_layout.addWidget(QLabel("(Base shape will be defined\nvia Radius and Conic in Zemax)"), 2, 0, 1, 2)
         
         base_group.setLayout(base_layout)
         layout.addWidget(base_group)
         
-        # Группа: Геометрия
-        geometry_group = QGroupBox("Геометрия Grid Sag")
+        # Group: Geometry
+        geometry_group = QGroupBox("Grid Sag Geometry")
         geometry_layout = QGridLayout()
         
         self.aperture_input = self.create_parameter_row(
-            geometry_layout, 0, "Диаметр апертуры (мм):", "100"
+            geometry_layout, 0, "Aperture diameter (mm):", "100"
         )
         self.grid_size_input = self.create_parameter_row(
-            geometry_layout, 1, "Размер сетки (nx=ny):", "256"
+            geometry_layout, 1, "Grid size (nx=ny):", "256"
         )
         
         geometry_group.setLayout(geometry_layout)
         layout.addWidget(geometry_group)
         
-        # Группа: Ступенчатые ошибки
-        step_group = QGroupBox("Параметры ступенек (осесимметричные)")
+        # Group: Step errors
+        step_group = QGroupBox("Step Parameters (axisymmetric)")
         step_layout = QGridLayout()
         
-        step_layout.addWidget(QLabel("Тип ступенек:"), 0, 0)
+        step_layout.addWidget(QLabel("Step type:"), 0, 0)
         self.step_type_combo = QComboBox()
         self.step_type_combo.addItems([
-            "Чередующиеся (±амплитуда)",
-            "Случайные (±амплитуда)",
-            "Синусоидальные зоны", 
-            "Пилообразные зоны"
+            "Alternating (±amplitude)",
+            "Random (±amplitude)",
+            "Sinusoidal zones",
+            "Sawtooth zones"
         ])
         step_layout.addWidget(self.step_type_combo, 0, 1)
         
         self.num_zones_input = self.create_parameter_row(
-            step_layout, 1, "Количество зон:", "20"
+            step_layout, 1, "Number of zones:", "20"
         )
         self.step_height_input = self.create_parameter_row(
-            step_layout, 2, "Амплитуда ступеньки (нм):", "5"
+            step_layout, 2, "Step amplitude (nm):", "5"
         )
         
         step_group.setLayout(step_layout)
         layout.addWidget(step_group)
         
-        # Группа: Высокочастотная волнистость
-        ripple_group = QGroupBox("Высокочастотная волнистость")
+        # Group: High-frequency ripple
+        ripple_group = QGroupBox("High-frequency Ripple")
         ripple_layout = QGridLayout()
         
         self.ripple_freq_input = self.create_parameter_row(
-            ripple_layout, 0, "Частота (cycles/mm):", "2.0"
+            ripple_layout, 0, "Frequency (cycles/mm):", "2.0"
         )
         self.ripple_amp_input = self.create_parameter_row(
-            ripple_layout, 1, "Амплитуда (нм):", "3"
+            ripple_layout, 1, "Amplitude (nm):", "3"
         )
-        self.enable_ripple_check = QCheckBox("Включить волнистость")
+        self.enable_ripple_check = QCheckBox("Enable ripple")
         ripple_layout.addWidget(self.enable_ripple_check, 2, 0, 1, 2)
         
         ripple_group.setLayout(ripple_layout)
         layout.addWidget(ripple_group)
         
-        # Группа: Шум
-        noise_group = QGroupBox("Случайный шум")
+        # Group: Noise
+        noise_group = QGroupBox("Random Noise")
         noise_layout = QGridLayout()
         
         self.noise_amp_input = self.create_parameter_row(
-            noise_layout, 0, "Амплитуда (нм RMS):", "1.0"
+            noise_layout, 0, "Amplitude (nm RMS):", "1.0"
         )
-        self.enable_noise_check = QCheckBox("Включить шум")
+        self.enable_noise_check = QCheckBox("Enable noise")
         noise_layout.addWidget(self.enable_noise_check, 1, 0, 1, 2)
         
         noise_group.setLayout(noise_layout)
         layout.addWidget(noise_group)
         
-        # Кнопки действий
+        # Action buttons
         action_layout = QVBoxLayout()
         
-        generate_btn = QPushButton("Сгенерировать поверхность")
+        generate_btn = QPushButton("Generate Surface")
         generate_btn.clicked.connect(self.generate_surface)
         generate_btn.setStyleSheet(
             "QPushButton { background-color: #4CAF50; color: white; "
@@ -134,25 +134,25 @@ class MSFEGenerator(QMainWindow):
         )
         action_layout.addWidget(generate_btn)
         
-        save_btn = QPushButton("Сохранить Zemax Grid Sag (.DAT)")
+        save_btn = QPushButton("Save Zemax Grid Sag (.DAT)")
         save_btn.clicked.connect(self.save_zemax_format)
         action_layout.addWidget(save_btn)
         
         layout.addLayout(action_layout)
         
-        # Статистика
-        stats_group = QGroupBox("Статистика ошибок поверхности")
+        # Statistics
+        stats_group = QGroupBox("Surface Error Statistics")
         stats_layout = QGridLayout()
         
         self.rms_label = QLabel("-")
         self.pv_label = QLabel("-")
         self.mean_label = QLabel("-")
         
-        stats_layout.addWidget(QLabel("RMS (нм):"), 0, 0)
+        stats_layout.addWidget(QLabel("RMS (nm):"), 0, 0)
         stats_layout.addWidget(self.rms_label, 0, 1)
-        stats_layout.addWidget(QLabel("PV (нм):"), 1, 0)
+        stats_layout.addWidget(QLabel("PV (nm):"), 1, 0)
         stats_layout.addWidget(self.pv_label, 1, 1)
-        stats_layout.addWidget(QLabel("Mean (нм):"), 2, 0)
+        stats_layout.addWidget(QLabel("Mean (nm):"), 2, 0)
         stats_layout.addWidget(self.mean_label, 2, 1)
         
         stats_group.setLayout(stats_layout)
@@ -173,41 +173,40 @@ class MSFEGenerator(QMainWindow):
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
-        # Вкладки для разных видов
+        # Tabs for different views
         tabs = QTabWidget()
         
-        # 2D карта ошибок
-        self.plot_2d = pg.PlotWidget()
-        self.plot_2d.setLabel('left', 'Y (мм)')
-        self.plot_2d.setLabel('bottom', 'X (мм)')
-        self.plot_2d.setTitle('2D карта ошибок поверхности (без базовой формы)')
-        tabs.addTab(self.plot_2d, "2D карта ошибок")
+        # 2D error map (matplotlib)
+        self.canvas_2d = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_2d = self.canvas_2d.figure.add_subplot(111)
+        tabs.addTab(self.canvas_2d, "2D Error Map")
         
-        # Cross-section
-        self.plot_cross = pg.PlotWidget()
-        self.plot_cross.setLabel('left', 'Sag (нм)')
-        self.plot_cross.setLabel('bottom', 'Радиус (мм)')
-        self.plot_cross.setTitle('Радиальный cross-section')
-        self.plot_cross.addLegend()
-        self.plot_cross.showGrid(x=True, y=True, alpha=0.3)
-        tabs.addTab(self.plot_cross, "Cross-section")
-        
-        # 3D ошибки (matplotlib)
+        # Cross-section (matplotlib)
+        self.canvas_cross = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_cross = self.canvas_cross.figure.add_subplot(111)
+        tabs.addTab(self.canvas_cross, "Cross-section")
+
+        # Grid Sag cross-section (errors only, enlarged scale)
+        self.canvas_gridsag = FigureCanvas(Figure(figsize=(8, 6)))
+        self.ax_gridsag = self.canvas_gridsag.figure.add_subplot(111)
+        tabs.addTab(self.canvas_gridsag, "Grid Sag Cross-section")
+
+        # 3D errors (matplotlib)
         self.canvas_3d_errors = FigureCanvas(Figure(figsize=(8, 6)))
         self.ax_3d_errors = self.canvas_3d_errors.figure.add_subplot(111, projection='3d')
-        tabs.addTab(self.canvas_3d_errors, "3D ошибки")
+        tabs.addTab(self.canvas_3d_errors, "3D Errors")
         
-        # 3D полная поверхность (matplotlib)
+        # 3D full surface (matplotlib)
         self.canvas_3d_full = FigureCanvas(Figure(figsize=(8, 6)))
         self.ax_3d_full = self.canvas_3d_full.figure.add_subplot(111, projection='3d')
-        tabs.addTab(self.canvas_3d_full, "3D полная поверхность")
+        tabs.addTab(self.canvas_3d_full, "3D Full Surface")
         
         layout.addWidget(tabs)
         
         return panel
     
     def compute_base_surface(self, X, Y):
-        """Вычисление базовой конической поверхности"""
+        """Compute base conic surface"""
         radius = float(self.radius_input.text())
         conic = float(self.conic_input.text())
         
@@ -226,58 +225,58 @@ class MSFEGenerator(QMainWindow):
     
     def generate_surface(self):
         try:
-            # Чтение параметров
+            # Read parameters
             aperture = float(self.aperture_input.text())
             grid_size = int(self.grid_size_input.text())
             num_zones = int(self.num_zones_input.text())
-            step_height = float(self.step_height_input.text()) * 1e-6  # нм -> мм
+            step_height = float(self.step_height_input.text()) * 1e-6  # nm -> mm
             step_type = self.step_type_combo.currentIndex()
             
-            # Создание сетки
+            # Create grid
             x = np.linspace(-aperture/2, aperture/2, grid_size)
             y = np.linspace(-aperture/2, aperture/2, grid_size)
             self.X, self.Y = np.meshgrid(x, y)
             
-            # Радиус
+            # Radius
             R = np.sqrt(self.X**2 + self.Y**2)
             
-            # Маска круглой апертуры
+            # Circular aperture mask
             mask = R <= aperture/2
             
-            # Вычисление базовой формы
+            # Compute base shape
             self.Z_base = self.compute_base_surface(self.X, self.Y)
             
-            # Генерация ТОЛЬКО ошибок
+            # Generate ONLY errors
             self.Z = np.zeros_like(R)
             
-            # Границы зон
+            # Zone boundaries
             zone_radii = np.linspace(0, aperture/2, num_zones + 1)
             
-            if step_type == 0:  # Чередующиеся ступеньки
+            if step_type == 0:  # Alternating steps
                 for i in range(num_zones):
                     r_inner = zone_radii[i]
                     r_outer = zone_radii[i + 1]
                     zone_mask = (R >= r_inner) & (R < r_outer)
                     
-                    # Чередование: четные зоны +step_height, нечетные -step_height
+                    # Alternating: even zones +step_height, odd zones -step_height
                     height = step_height if i % 2 == 0 else -step_height
                     self.Z[zone_mask] = height
             
-            elif step_type == 1:  # Случайные ступеньки
+            elif step_type == 1:  # Random steps
                 for i in range(num_zones):
                     r_inner = zone_radii[i]
                     r_outer = zone_radii[i + 1]
                     zone_mask = (R >= r_inner) & (R < r_outer)
                     
-                    # Случайная высота от -step_height до +step_height
+                    # Random height from -step_height to +step_height
                     height = step_height * (2 * np.random.random() - 1)
                     self.Z[zone_mask] = height
             
-            elif step_type == 2:  # Синусоидальные зоны
+            elif step_type == 2:  # Sinusoidal zones
                 k = 2 * np.pi * num_zones / aperture
                 self.Z = step_height * np.sin(k * R)
             
-            elif step_type == 3:  # Пилообразные зоны
+            elif step_type == 3:  # Sawtooth zones
                 for i in range(num_zones):
                     r_inner = zone_radii[i]
                     r_outer = zone_radii[i + 1]
@@ -288,26 +287,26 @@ class MSFEGenerator(QMainWindow):
                     ramp = (zone_r / zone_width) * step_height
                     self.Z[zone_mask] = ramp[zone_mask]
             
-            # Добавление высокочастотной волнистости
+            # Add high-frequency ripple
             if self.enable_ripple_check.isChecked():
                 ripple_freq = float(self.ripple_freq_input.text())
                 ripple_amp = float(self.ripple_amp_input.text()) * 1e-6
                 ripple = ripple_amp * np.sin(2 * np.pi * ripple_freq * R)
                 self.Z += ripple
             
-            # Добавление случайного шума
+            # Add random noise
             if self.enable_noise_check.isChecked():
                 noise_amp = float(self.noise_amp_input.text()) * 1e-6
                 noise = noise_amp * np.random.randn(grid_size, grid_size)
                 self.Z += noise
             
-            # Применение маски
+            # Apply mask
             self.Z[~mask] = 0
             
-            # Обновление графиков
+            # Update plots
             self.update_plots()
             
-            # Обновление статистики
+            # Update statistics
             z_valid = self.Z[mask]
             rms = np.sqrt(np.mean(z_valid**2)) * 1e6
             pv = (np.max(z_valid) - np.min(z_valid)) * 1e6
@@ -318,80 +317,146 @@ class MSFEGenerator(QMainWindow):
             self.mean_label.setText(f"{mean:.3f}")
             
             QMessageBox.information(
-                self, "Успех", 
-                f"Поверхность сгенерирована!\n\n"
-                f"RMS ошибки: {rms:.3f} нм\n"
-                f"PV ошибки: {pv:.3f} нм"
+                self, "Success",
+                f"Surface generated!\n\n"
+                f"RMS errors: {rms:.3f} nm\n"
+                f"PV errors: {pv:.3f} nm"
             )
             
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка генерации: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Generation error: {str(e)}")
     
     def update_plots(self):
         if self.Z is None:
             return
         
-        # 2D карта ОШИБОК
-        self.plot_2d.clear()
-        img = pg.ImageItem()
-        
+        # 2D ERROR map (matplotlib)
+        # Completely clear figure and recreate axes
+        self.canvas_2d.figure.clear()
+        self.ax_2d = self.canvas_2d.figure.add_subplot(111)
+
         Z_nm = self.Z * 1e6
-        img.setImage(Z_nm.T)
-        
         aperture = float(self.aperture_input.text())
-        img.setRect(-aperture/2, -aperture/2, aperture, aperture)
+
+        im = self.ax_2d.imshow(
+            Z_nm,
+            extent=[-aperture/2, aperture/2, -aperture/2, aperture/2],
+            origin='lower',
+            cmap='turbo',
+            aspect='equal'
+        )
+
+        self.ax_2d.set_xlabel('X (mm)', fontsize=10)
+        self.ax_2d.set_ylabel('Y (mm)', fontsize=10)
+
+        # Colorbar (figure cleared, so just create new one)
+        self.canvas_2d.figure.colorbar(im, ax=self.ax_2d, label='Errors (nm)')
+
+        self.canvas_2d.draw()
         
-        colormap = pg.colormap.get('viridis')
-        img.setColorMap(colormap)
-        self.plot_2d.addItem(img)
-        
-        # Cross-section
-        self.plot_cross.clear()
-        
+        # Cross-section (matplotlib)
+        self.ax_cross.clear()
+
         grid_size = int(self.grid_size_input.text())
         center_idx = grid_size // 2
-        
+
         x_cross = self.X[center_idx, :]
-        z_errors = self.Z[center_idx, :] * 1e6
-        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :]) * 1e6
-        
+        z_errors = self.Z[center_idx, :]  # in mm
+        z_total = (self.Z_base[center_idx, :] + self.Z[center_idx, :])  # in mm
+
         r_cross = np.abs(x_cross)
         sort_idx = np.argsort(r_cross)
         r_sorted = r_cross[sort_idx]
-        
-        # График ошибок
-        self.plot_cross.plot(
-            r_sorted, z_errors[sort_idx], 
-            pen=pg.mkPen('r', width=2), 
-            name='Ошибки (для Grid Sag)'
+
+        # Error plot
+        self.ax_cross.plot(
+            r_sorted, z_errors[sort_idx],
+            'r-', linewidth=2, label='Errors (for Grid Sag)'
         )
-        
-        # График полной поверхности
-        self.plot_cross.plot(
-            r_sorted, z_total[sort_idx], 
-            pen=pg.mkPen('b', width=1), 
-            name='Полная поверхность'
+
+        # Full surface plot
+        self.ax_cross.plot(
+            r_sorted, z_total[sort_idx],
+            'b-', linewidth=1, label='Full Surface'
         )
-        
-        # 3D ошибки (matplotlib)
+
+        self.ax_cross.set_xlabel('Radius (mm)', fontsize=10)
+        self.ax_cross.set_ylabel('Sag (mm)', fontsize=10)
+        self.ax_cross.legend()
+        self.ax_cross.grid(True, alpha=0.3)
+
+        # Interactive cursor for coordinate display
+        self.canvas_cross.figure.canvas.mpl_connect('motion_notify_event', self.on_cross_hover)
+        self.canvas_cross.draw()
+
+        # Grid Sag cross-section (errors only, nanometer scale)
+        self.ax_gridsag.clear()
+
+        # Plot errors only in nanometers for step visibility
+        z_errors_nm = self.Z[center_idx, :] * 1e6  # mm -> nm
+
+        self.ax_gridsag.plot(
+            r_sorted, z_errors_nm[sort_idx],
+            'r-', linewidth=2
+        )
+
+        self.ax_gridsag.set_xlabel('Radius (mm)', fontsize=10)
+        self.ax_gridsag.set_ylabel('Grid Sag (nm)', fontsize=10)
+        self.ax_gridsag.grid(True, alpha=0.3)
+
+        # Interactive cursor
+        self.canvas_gridsag.figure.canvas.mpl_connect('motion_notify_event', self.on_gridsag_hover)
+        self.canvas_gridsag.draw()
+
+        # 3D errors (matplotlib)
         self.update_3d_matplotlib_errors()
-        
-        # 3D полная поверхность (matplotlib)
+
+        # 3D full surface (matplotlib)
         self.update_3d_matplotlib_full()
-    
+
+    def on_cross_hover(self, event):
+        """Mouse hover handler for cross-section plot"""
+        if event.inaxes == self.ax_cross and event.xdata is not None and event.ydata is not None:
+            # Update title with coordinates
+            self.ax_cross.set_title(
+                f'Radius: {event.xdata:.3f} mm, Sag: {event.ydata:.6f} mm',
+                fontsize=10
+            )
+            self.canvas_cross.draw_idle()
+        else:
+            # Remove title
+            self.ax_cross.set_title('')
+            self.canvas_cross.draw_idle()
+
+    def on_gridsag_hover(self, event):
+        """Mouse hover handler for Grid Sag cross-section plot"""
+        if event.inaxes == self.ax_gridsag and event.xdata is not None and event.ydata is not None:
+            # Update title with coordinates
+            self.ax_gridsag.set_title(
+                f'Radius: {event.xdata:.3f} mm, Grid Sag: {event.ydata:.3f} nm',
+                fontsize=10
+            )
+            self.canvas_gridsag.draw_idle()
+        else:
+            # Remove title
+            self.ax_gridsag.set_title('')
+            self.canvas_gridsag.draw_idle()
+
     def update_3d_matplotlib_errors(self):
-        """3D график только ошибок"""
-        self.ax_3d_errors.clear()
-        
+        """3D plot of errors only"""
+        # Completely clear figure and recreate axes
+        self.canvas_3d_errors.figure.clear()
+        self.ax_3d_errors = self.canvas_3d_errors.figure.add_subplot(111, projection='3d')
+
         grid_size = int(self.grid_size_input.text())
         
-        # Прореживание для производительности
+        # Decimation for performance
         step = max(1, grid_size // 100)
         X_sub = self.X[::step, ::step]
         Y_sub = self.Y[::step, ::step]
-        Z_sub = self.Z[::step, ::step] * 1e6  # в нм
-        
-        # Поверхность
+        Z_sub = self.Z[::step, ::step] * 1e6  # in nm
+
+        # Surface
         surf = self.ax_3d_errors.plot_surface(
             X_sub, Y_sub, Z_sub,
             cmap='viridis',
@@ -401,18 +466,18 @@ class MSFEGenerator(QMainWindow):
             edgecolor='none'
         )
         
-        self.ax_3d_errors.set_xlabel('X (мм)', fontsize=10)
-        self.ax_3d_errors.set_ylabel('Y (мм)', fontsize=10)
-        self.ax_3d_errors.set_zlabel('Ошибки (нм)', fontsize=10)
-        self.ax_3d_errors.set_title('3D визуализация ошибок поверхности', fontsize=12, fontweight='bold')
-        
-        # Colorbar
-        self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Ошибки (нм)')
-        
-        # Установка угла обзора
+        self.ax_3d_errors.set_xlabel('X (mm)', fontsize=10)
+        self.ax_3d_errors.set_ylabel('Y (mm)', fontsize=10)
+        self.ax_3d_errors.set_zlabel('Errors (nm)', fontsize=10)
+        self.ax_3d_errors.set_title('3D Surface Error Visualization', fontsize=12, fontweight='bold')
+
+        # Colorbar (figure cleared, so just create new one)
+        self.canvas_3d_errors.figure.colorbar(surf, ax=self.ax_3d_errors, shrink=0.5, aspect=5, label='Errors (nm)')
+
+        # Set view angle
         self.ax_3d_errors.view_init(elev=25, azim=45)
-        
-        # Равные пропорции
+
+        # Equal proportions
         max_range = np.array([X_sub.max()-X_sub.min(), Y_sub.max()-Y_sub.min()]).max() / 2.0
         mid_x = (X_sub.max()+X_sub.min()) * 0.5
         mid_y = (Y_sub.max()+Y_sub.min()) * 0.5
@@ -422,17 +487,19 @@ class MSFEGenerator(QMainWindow):
         self.canvas_3d_errors.draw()
     
     def update_3d_matplotlib_full(self):
-        """3D график полной поверхности"""
-        self.ax_3d_full.clear()
-        
+        """3D plot of full surface"""
+        # Completely clear figure and recreate axes
+        self.canvas_3d_full.figure.clear()
+        self.ax_3d_full = self.canvas_3d_full.figure.add_subplot(111, projection='3d')
+
         grid_size = int(self.grid_size_input.text())
         
         step = max(1, grid_size // 100)
         X_sub = self.X[::step, ::step]
         Y_sub = self.Y[::step, ::step]
-        Z_full_sub = (self.Z_base[::step, ::step] + self.Z[::step, ::step]) * 1e3  # в мкм
-        
-        # Поверхность
+        Z_full_sub = (self.Z_base[::step, ::step] + self.Z[::step, ::step]) * 1e3  # in μm
+
+        # Surface
         surf = self.ax_3d_full.plot_surface(
             X_sub, Y_sub, Z_full_sub,
             cmap='jet',
@@ -442,18 +509,18 @@ class MSFEGenerator(QMainWindow):
             edgecolor='none'
         )
         
-        self.ax_3d_full.set_xlabel('X (мм)', fontsize=10)
-        self.ax_3d_full.set_ylabel('Y (мм)', fontsize=10)
-        self.ax_3d_full.set_zlabel('Высота (мкм)', fontsize=10)
-        self.ax_3d_full.set_title('3D визуализация полной поверхности', fontsize=12, fontweight='bold')
-        
-        # Colorbar
-        self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Высота (мкм)')
-        
-        # Установка угла обзора
+        self.ax_3d_full.set_xlabel('X (mm)', fontsize=10)
+        self.ax_3d_full.set_ylabel('Y (mm)', fontsize=10)
+        self.ax_3d_full.set_zlabel('Height (μm)', fontsize=10)
+        self.ax_3d_full.set_title('3D Full Surface Visualization', fontsize=12, fontweight='bold')
+
+        # Colorbar (figure cleared, so just create new one)
+        self.canvas_3d_full.figure.colorbar(surf, ax=self.ax_3d_full, shrink=0.5, aspect=5, label='Height (μm)')
+
+        # Set view angle
         self.ax_3d_full.view_init(elev=25, azim=45)
-        
-        # Равные пропорции
+
+        # Equal proportions
         max_range = np.array([X_sub.max()-X_sub.min(), Y_sub.max()-Y_sub.min()]).max() / 2.0
         mid_x = (X_sub.max()+X_sub.min()) * 0.5
         mid_y = (Y_sub.max()+Y_sub.min()) * 0.5
@@ -464,11 +531,11 @@ class MSFEGenerator(QMainWindow):
     
     def save_zemax_format(self):
         if self.Z is None:
-            QMessageBox.warning(self, "Предупреждение", "Сначала сгенерируйте поверхность!")
+            QMessageBox.warning(self, "Warning", "Generate surface first!")
             return
-        
+
         filename, _ = QFileDialog.getSaveFileName(
-            self, "Сохранить Zemax Grid Sag", "", "DAT Files (*.dat)"
+            self, "Save Zemax Grid Sag", "", "DAT Files (*.dat)"
         )
         
         if filename:
@@ -480,79 +547,22 @@ class MSFEGenerator(QMainWindow):
                 dely = delx
                 
                 with open(filename, 'w') as f:
-                    # Заголовок
+                    # Header
                     f.write(f"{grid_size} {grid_size} {delx:.6f} {dely:.6f} 0 0.0 0.0\n")
                     
-                    # Данные: слева направо, сверху вниз
+                    # Data: left to right, top to bottom
                     for i in range(grid_size):
                         for j in range(grid_size):
                             z_val = self.Z[i, j]
                             f.write(f"{z_val:.8e} 0.0 0.0 0.0 0\n")
-                
-                # Инструкция
-                instruction_file = filename.replace('.dat', '_INSTRUCTION.txt')
-                with open(instruction_file, 'w', encoding='utf-8') as f:
-                    f.write("=" * 70 + "\n")
-                    f.write("ИНСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ В ZEMAX OPTICSTUDIO\n")
-                    f.write("=" * 70 + "\n\n")
-                    
-                    f.write("ПАРАМЕТРЫ ГЕНЕРАЦИИ:\n")
-                    f.write(f"  Радиус кривизны: {self.radius_input.text()} мм\n")
-                    f.write(f"  Коническая постоянная: {self.conic_input.text()}\n")
-                    f.write(f"  Диаметр апертуры: {self.aperture_input.text()} мм\n")
-                    f.write(f"  Размер сетки: {grid_size} x {grid_size}\n")
-                    f.write(f"  Тип ступенек: {self.step_type_combo.currentText()}\n")
-                    f.write(f"  Количество зон: {self.num_zones_input.text()}\n")
-                    f.write(f"  Амплитуда ступенек: {self.step_height_input.text()} нм\n")
-                    f.write(f"  RMS ошибки: {self.rms_label.text()} нм\n")
-                    f.write(f"  PV ошибки: {self.pv_label.text()} нм\n\n")
-                    
-                    f.write("НАСТРОЙКА В ZEMAX:\n")
-                    f.write("-" * 70 + "\n")
-                    f.write("1. Создайте поверхность типа Grid Sag\n\n")
-                    
-                    f.write("2. Задайте базовые параметры поверхности:\n")
-                    f.write(f"   - Radius: {self.radius_input.text()}\n")
-                    f.write(f"   - Conic: {self.conic_input.text()}\n")
-                    f.write(f"   - Semi-Diameter: {float(self.aperture_input.text())/2}\n\n")
-                    
-                    f.write("3. Загрузка Grid Sag файла:\n")
-                    f.write("   - Surface Properties → Import\n")
-                    f.write("   - Выберите файл .DAT\n\n")
-                    
-                    f.write("4. ВАЖНО! Установите Parameter 0:\n")
-                    f.write("   - Parameter 0 = 1 (LINEAR interpolation)\n")
-                    f.write("   - Это сохранит резкие ступеньки без сглаживания!\n")
-                    f.write("   - Bicubic spline (0) размоет ступеньки\n\n")
-                    
-                    f.write("5. Если нужны Zernike термы (опционально):\n")
-                    f.write("   - Parameters 1-8: коэффициенты асферы α1-α8\n")
-                    f.write("   - Parameters 13-14: Zernike термы и радиус нормализации\n\n")
-                    
-                    f.write("=" * 70 + "\n")
-                    f.write("РЕЗУЛЬТАТ:\n")
-                    f.write("=" * 70 + "\n")
-                    f.write("Grid Sag = Z_base(radius, conic) + Z_grid(ступеньки)\n\n")
-                    f.write("Cross-section поверхности будет ступенчатым!\n")
-                    f.write("Используйте Analysis → Surface Sag для проверки.\n\n")
-                    
-                    f.write("ПРОВЕРКА:\n")
-                    f.write("-" * 70 + "\n")
-                    f.write("1. Analyze → Surface → Surface Sag\n")
-                    f.write("2. Установите большое разрешение (512x512)\n")
-                    f.write("3. Cross-section должен показать ступеньки\n")
-                    f.write("4. Используйте FFT PSF для анализа влияния на MTF\n")
-                
+
                 QMessageBox.information(
-                    self, "Успех", 
-                    f"Файлы сохранены:\n\n"
-                    f"📄 {filename}\n"
-                    f"📄 {instruction_file}\n\n"
-                    f"Следуйте инструкциям в TXT файле!"
+                    self, "Success",
+                    f"File saved:\n{filename}"
                 )
-                
+
             except Exception as e:
-                QMessageBox.critical(self, "Ошибка", f"Ошибка сохранения: {str(e)}")
+                QMessageBox.critical(self, "Error", f"Save error: {str(e)}")
 
 
 if __name__ == '__main__':
